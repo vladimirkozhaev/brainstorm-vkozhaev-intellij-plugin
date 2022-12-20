@@ -1,0 +1,342 @@
+{
+  parserClass="com.interfaced.brs.lang.parser.BrsParser"
+  parserUtilClass="com.interfaced.brs.lang.parser.BrsParserUtil"
+
+  implements="com.interfaced.brs.lang.psi.ext.BrsElement"
+  extends='com.interfaced.brs.lang.psi.ext.BrsElementImpl'
+
+  elementTypeHolderClass="com.interfaced.brs.lang.psi.BrsTypes"
+  elementTypeClass="com.interfaced.brs.lang.psi.BrsCompositeElementType"
+  tokenTypeClass="com.interfaced.brs.lang.psi.BrsTokenType"
+
+  psiClassPrefix="Brs"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.interfaced.brs.lang.psi"
+  psiImplPackage="com.interfaced.brs.lang.psi.impl"
+
+  tokens = [
+    T_LBRACE             = '{'
+    T_RBRACE             = '}'
+    T_LBRACK             = '['
+    T_RBRACK             = ']'
+    T_LPAREN             = '('
+    T_RPAREN             = ')'
+    T_COLON              = ':'
+    T_SEMICOLON          = ';'
+    T_COMMA              = ','
+    T_EQ                 = '='
+    T_DOT                = '.'
+    T_LESS               = '<'
+    T_GREAT              = '>'
+    T_INCREMENT          = '++'
+    T_DECREMENT          = '--'
+    T_PLUS               = '+'
+    T_MINUS              = '-'
+    T_ASTERISK           = '*'
+    T_SLASH              = '/'
+    T_BACK_SLASH         = '\'
+    T_DOLLAR             = '$'
+    T_PERCENT            = '%'
+    T_EXCLAM             = '!'
+    T_QUESTION           = '?'
+    T_SHARP              = '#'
+    T_AMP                = '&'
+    T_EXP                = '^'
+    T_LEFT_SHIFT         = '<<'
+    T_RIGHT_SHIFT        = '>>'
+    T_LEFT_SHIFT_ASSIGN  = '<<='
+    T_RIGHT_SHIFT_ASSIGN = '>>='
+    T_ADD_ASSIGN         = '+='
+    T_SUB_ASSIGN         = '-='
+    T_MUL_ASSIGN         = '*='
+    T_DIV_ASSIGN         = '/='
+    T_BACK_DIV_ASSIGN    = '\='
+    T_LESS_EQ            = '<='
+    T_GREAT_EQ           = '>='
+    T_INEQUAL            = '<>'
+    T_AT                 = '@'
+    T_LINE_TERMINATOR    = 'eol'
+    T_RETURN             = 'return'
+    T_DIM                = 'dim'
+    T_COMMENT            = 'comment'
+    T_STOP               = 'stop'
+    T_GOTO               = 'goto'
+    T_PRINT              = 'print'
+    T_NEXT               = 'next'
+    T_WHILE              = 'while'
+    T_IF                 = 'if'
+    T_THEN               = 'then'
+    T_ELSE               = 'else'
+    T_ELSE_IF            = 'elseif'
+    T_FOR                = 'for'
+    T_TO                 = 'to'
+    T_EACH               = 'each'
+    T_IN                 = 'in'
+    T_FUNCTION           = 'function'
+    T_SUB                = 'sub'
+    T_AS                 = 'as'
+    T_TRY                = 'try'
+    T_CATCH              = 'catch'
+    T_INTEGER            = 'integer'
+    T_FLOAT              = 'float'
+    T_DOUBLE             = 'double'
+    T_BOOLEAN            = 'boolean'
+    T_STRING             = 'string'
+    T_OBJECT             = 'object'
+    T_DYNAMIC            = 'dynamic'
+    T_VOID               = 'void'
+    T_TRUE               = 'true'
+    T_FALSE              = 'false'
+    T_INVALID            = 'invalid'
+    T_AND                = 'and'
+    T_OR                 = 'or'
+    T_MOD                = 'mod'
+    T_NOT                = 'not'
+    T_EXIT               = 'exit'
+    T_END                = 'end'
+    T_STEP               = 'step'
+    T_EXIT_WHILE         = 'exitwhile'
+    T_EXIT_FOR           = 'exitfor'
+    T_END_WHILE          = 'endwhile'
+    T_END_FOR            = 'endfor'
+    T_END_IF             = 'endif'
+    T_END_FUNCTION       = 'endfunction'
+    T_END_SUB            = 'endsub'
+    T_LIBRARY            = 'library'
+    T_LONGINTEGER        = 'longinteger'
+    T_FUNCTION_TYPE      = 'function_type'
+    T_END_TRY            = 'endtry'
+  ]
+
+  consumeTokenMethod(".+_expr|expr")="consumeTokenFast"
+  extends(".+expr")=expr
+
+  generateTokenAccessors=true
+}
+
+BrsProgram ::= ( statements | 'eol' ) *
+
+private blank ::= 'eol' +
+private blank_maybe ::= blank ?
+private statements ::= statement (stmt_terminator statement) *
+private colon_terminated_statements ::= statement (':' statement) *
+private stmt_terminator ::= blank | ':'
+
+// Statements
+private statement ::=
+    if_stmt
+  | try_cach_stmt
+  | function_stmt
+  | for_stmt
+  | while_stmt
+  | sub_stmt
+  | assign_stmt
+  | print_stmt
+  | goto_stmt
+  | dim_stmt
+  | stop_stmt
+  | label_stmt
+  | library_stmt
+  | exit_stmt
+  | return_stmt
+  | end_stmt
+  | expr
+
+// DIM name (dim1, dim2, …, dimK)
+dim_stmt ::= 'dim' identifier dimension_list
+private dimension_list ::= '[' [ dim_list_items ] ']'
+private dim_list_items ::= T_INTEGER_LIT ( ',' T_INTEGER_LIT ) *
+
+// variable = expression
+assign_stmt ::= variable assign_op expr {rightAssociative=true}
+private variable ::= member_ref_expr | identifier_ref_expr | index_access_expr
+
+
+
+//TRY
+try_stmt::='try'
+//CATCH
+catch_stmt::='catch' identifier
+// END
+end_stmt ::= 'end'
+
+// STOP
+stop_stmt ::= 'stop'
+
+// EXIT ...
+exit_stmt ::= exit_for | exit_while
+
+// GOTO label
+goto_stmt ::= 'goto' T_IDENTIFIER
+
+// label
+label_stmt ::= T_IDENTIFIER ':'
+
+// LIBRARY "lib"
+library_stmt ::= 'library' T_STRING_LITERAL
+
+// RETURN [expression]
+return_stmt ::= 'return' [ expr ]
+
+// FUNCTION([parameter [= default] AS type, …]) AS type / END FUNCTION
+function_stmt ::= fn_decl stmt_terminator [ statements stmt_terminator ] end_function
+fn_decl ::= 'function' fn_tail {
+    implements = "com.interfaced.brs.lang.psi.ext.BrsNameIdentifierOwner"
+    mixin = "com.interfaced.brs.lang.psi.ext.BrsNamedElementImpl"
+}
+private fn_tail ::= T_IDENTIFIER parameter_list as?
+parameter_list ::= '(' [ parameter_list_items ] ')'
+private parameter_list_items ::= parameter (',' parameter) *
+parameter ::= identifier default? as? {
+    implements = "com.interfaced.brs.lang.psi.ext.BrsNameIdentifierOwner"
+    mixin = "com.interfaced.brs.lang.psi.ext.BrsNamedElementImpl"
+}
+private default ::= '=' expr
+private as ::= 'as' type
+private type ::= 'integer' | 'float' | 'double' | 'boolean' | 'string' | 'object' | 'dynamic' | 'function_type' | 'void' | 'longinteger'
+
+// SUB (same as function but with type Void by default)
+sub_stmt ::= sub_decl stmt_terminator [ statements stmt_terminator ] end_sub
+sub_decl ::= 'sub' fn_tail {
+    implements = "com.interfaced.brs.lang.psi.ext.BrsNameIdentifierOwner"
+    mixin = "com.interfaced.brs.lang.psi.ext.BrsNamedElementImpl"
+}
+
+// PRINT item list
+print_stmt ::= ( 'print' | '?' ) [ output ',' ] [ location ',' ] print_item +
+private print_item ::= format_item | expr
+private format_item ::= ',' | ';'
+private output ::= '#' expr
+private location ::= '@' expr
+
+// FOR / END FOR
+for_stmt ::= for_init stmt_terminator [ statements stmt_terminator ] ( end_for | 'next' )
+for_init ::= for_each | for_counter
+
+
+// FOR counter = exp TO exp [STEP exp]
+private for_counter ::= 'for' identifier '=' expr 'to' expr step?
+private step ::= 'step' expr
+
+// FOR EACH item IN object
+private for_each ::= 'for' 'each' identifier 'in' expr
+
+// WHILE expression / [statements] / END WHILE
+while_stmt ::= while_init stmt_terminator [ statements stmt_terminator ] end_while
+while_init ::= 'while' expr
+
+// IF
+if_stmt ::= if_line_stmt | if_block_stmt
+// --- IF expression THEN statements [ELSE statements]
+private if_line_stmt ::= if_init colon_terminated_statements [ 'else' colon_terminated_statements ]
+
+// --- Block IF, ELSEIF, THEN, ENDIF
+private if_block_stmt ::= if_init stmt_terminator
+    [ statements stmt_terminator ]
+    [ else_if_stmts stmt_terminator ]
+    [ else_stmt stmt_terminator ]
+end_if
+if_init ::= 'if' expr [ 'then' ]
+
+else_stmt ::= 'else' [ stmt_terminator statements ]
+else_if_stmt ::= else_if_init [ stmt_terminator statements ]
+else_if_init ::= else_if expr [ 'then' ]
+
+private else_if_stmts ::= else_if_stmt ( stmt_terminator else_if_stmt ) *
+private else_if ::= ('else' 'if') | 'elseif'
+
+try_cach_stmt::= try_stmt
+    stmt_terminator [ statements stmt_terminator ]
+    catch_stmt stmt_terminator [ statements stmt_terminator ]
+    end_try
+
+exit_while ::= ('exit' 'while') | 'exitwhile'
+exit_for ::= ('exit' 'for') | 'exitfor'
+end_for ::= 'endfor'
+end_while ::= 'endwhile'
+end_if ::= 'endif'
+end_sub ::= 'endsub'
+end_try::= 'endtry'
+end_function ::= 'endfunction'
+
+
+
+// Expressions
+expr ::=
+    or_expr
+  | and_expr
+  | comp_expr
+  | bit_shift_expr
+  | inc_dec_expr
+  | add_expr
+  | mul_expr
+  | unary_expr
+  | exponential_expr
+  | member_ref_expr
+  | index_access_expr
+  | anon_function_stmt_expr
+  | anon_sub_stmt_expr
+  | call_expr
+  | primary
+
+private primary ::= identifier_ref_expr | literal_expr | paren_expr
+
+fake ref_expr ::= expr? member_op identifier
+identifier_ref_expr ::= identifier { extends=ref_expr elementType=ref_expr }
+member_ref_expr ::= expr member_op identifier {extends=ref_expr elementType=ref_expr }
+
+call_expr ::= expr arg_list
+arg_list ::= '(' [ arg_list_items ] ')'
+private arg_list_items ::= expr (',' expr) *
+
+literal_expr ::= numeric_literal | array_literal_expr | bool_literal | object_literal | 'invalid' | T_STRING_LITERAL
+
+numeric_literal ::= ( T_INTEGER_LIT | T_FLOAT_LIT ) ( '%' | '!' | '#' | '&' )?
+
+fake array_expr ::= expr? array
+array_literal_expr ::= array { extends=array_expr elementType=array_expr }
+index_access_expr ::= expr array { extends=array_expr elementType=array_expr }
+
+array ::= '[' blank_maybe [ array_items ] ','? blank_maybe ']'
+private array_items ::= expr ( property_separator expr ) *
+
+private bool_literal ::= 'true' | 'false'
+
+object_literal ::= '{' blank_maybe [ object_items ] ','? blank_maybe '}'
+private object_items ::= object_property ( property_separator object_property ) *
+private property_separator ::= (',' blank) | ',' | blank
+object_property ::= property_identifier ':' expr
+property_identifier ::= T_IDENTIFIER | T_STRING_LITERAL
+
+// Anonymous Function
+anon_function_stmt_expr ::= anon_function_decl stmt_terminator [ statements stmt_terminator ] end_function
+anon_function_decl ::= 'function' parameter_list as?
+
+// Anonymous Sub
+anon_sub_stmt_expr ::= anon_sub_decl stmt_terminator [ statements stmt_terminator ] end_sub
+anon_sub_decl ::= 'sub' parameter_list
+
+and_expr ::= expr 'and' expr
+or_expr ::= expr 'or' expr
+comp_expr ::= expr comp_op expr
+bit_shift_expr ::= expr bit_shift_op expr
+inc_dec_expr ::= expr ( T_INCREMENT | T_DECREMENT )
+add_expr ::= expr add_op expr
+mul_expr ::= expr mul_op expr
+unary_expr ::= unary_op expr
+paren_expr ::= '(' expr ')'
+exponential_expr ::= expr '^' expr
+
+private assign_op ::= '=' | '<<=' | '>>=' | '+=' | '-=' | '*=' | '/=' | '\='
+private comp_op ::= '<' | '>' | '=' | '>=' | '<=' | '<>'
+private bit_shift_op ::= '<<' | '>>'
+private add_op ::= '-' | '+'
+private mul_op ::= '*' | '/' | '\' | 'mod'
+private unary_op ::= 'not' | '-' | '+'
+private member_op ::= '.' | '@'
+
+identifier ::= T_IDENTIFIER type_designator? {
+    mixin = "com.interfaced.brs.lang.psi.ext.BrsIdentifierImplMixin"
+    implements = "com.interfaced.brs.lang.psi.ext.BrsReferenceElement"
+}
+private type_designator ::= '$' | '%' | '!' | '#' | '&'
