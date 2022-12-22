@@ -12,6 +12,16 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
 
+        maven {
+            url "https://www.jetbrains.com/intellij-repository/releases"
+        }
+        maven {
+            url "https://www.jetbrains.com/intellij-repository/snapshots"
+        }
+
+        maven {
+            url "https://cache-redirector.jetbrains.com/intellij-dependencies"
+        }
 
     }
 
@@ -31,7 +41,7 @@ configurations {
 }
 
 group 'com.interfaced'
-version '0.2.7'
+version = '0.2.7'
 
 
 apply plugin: 'kotlin'
@@ -46,8 +56,7 @@ sourceSets {
 }
 
 intellij {
-
-    version '2022.1.1'
+    version '2022.3'
 }
 
 grammarKit {
@@ -63,11 +72,11 @@ repositories {
 
 dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib
-    implementation   group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: '1.7.22'
+    implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: '1.7.22'
 
-    implementation   files('jars/grammar-kit.jar')
-    implementation   group: 'junit', name: 'junit', version: '4.12'
-    implementation   "org.jetbrains.kotlin:kotlin-stdlib-jdk7"
+    implementation files('jars/grammar-kit.jar')
+    implementation group: 'junit', name: 'junit', version: '4.12'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7"
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-gradle-plugin
     implementation group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: '1.6.0'
 
@@ -80,7 +89,7 @@ import org.jetbrains.grammarkit.tasks.GenerateParser
 
 def GENERATE_GROUP = 'Generate'
 
-task setConfiguration(){
+task setConfiguration() {
     configurations.compileOnly.setCanBeResolved(true)
 }
 task generateLexer(type: GenerateLexer) {
@@ -112,4 +121,4 @@ compileKotlin {
     kotlinOptions.jvmTarget = "17"
 }
 
-compileKotlin.dependsOn(setConfiguration,generateLexer, generateParser)
+compileKotlin.dependsOn(setConfiguration, generateLexer, generateParser)
